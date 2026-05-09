@@ -3,7 +3,7 @@
 
 using namespace std;
 
-vector <int> ABS_Z_Z (const vector <int> &a) { //N1
+vector <int> ABS_Z_Z (const vector <int> &a) { //Z1
     vector <int> abs_a = a;
     if (abs_a[0] != 0) abs_a[0] = 1;
     return abs_a;
@@ -13,25 +13,25 @@ int SGN_Z_D(const vector <int> &a) { //N2
     return a[0];
 }
 
-vector <int> MUL_ZM_Z (const vector <int> &g) { // N3
+vector <int> MUL_ZM_Z (const vector <int> &g) { //Z3
     vector <int> a = g;
     a[0] *= -1;
     return a;
 }
 
-vector <int> TRANS_N_Z (const vector <int> &g) { //N4
+vector <int> TRANS_N_Z (const vector <int> &g) { //Z4
     vector <int> a = g;
     if (a[0] != 0) a.insert(a.begin(), 1);
     else a.insert(a.begin(), 0);
     return a;
 }
-vector <int> TRANS_Z_N (const vector <int> &g) { //N5
+vector <int> TRANS_Z_N (const vector <int> &g) { //Z5
     vector <int> a = g;
     a.erase(a.begin());
     return a;
 }
 
-vector <int> ADD_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N6
+vector <int> ADD_ZZ_Z(const vector <int> &g, const vector <int> &f) { //Z6
     if (SGN_Z_D(g) == 0) return f;
     if (SGN_Z_D(f) == 0) return g;
 
@@ -61,7 +61,7 @@ vector <int> ADD_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N6
     return c;
 }
 
-vector <int> SUB_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N7
+vector <int> SUB_ZZ_Z(const vector <int> &g, const vector <int> &f) { //Z7
     vector <int> a = TRANS_Z_N(g);
     vector <int> b = TRANS_Z_N(f);
     if (SGN_Z_D(g) == 1 && SGN_Z_D(f) == 1) {
@@ -88,7 +88,7 @@ vector <int> SUB_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N7
     if (SGN_Z_D(f) == 0) return g;
 }
 
-vector <int> MUL_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N8
+vector <int> MUL_ZZ_Z(const vector <int> &g, const vector <int> &f) { //Z8
     vector <int> a = TRANS_Z_N(g);
     vector <int> b = TRANS_Z_N(f);
     if ((SGN_Z_D(g) == 1 && SGN_Z_D(f) == 1)|| (SGN_Z_D(g) == -1 && SGN_Z_D(f) == -1))
@@ -99,7 +99,7 @@ vector <int> MUL_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N8
     if (SGN_Z_D(f) == 0) return {0, 0};
 }
 
-vector <int> DIV_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N9
+vector <int> DIV_ZZ_Z(const vector <int> &g, const vector <int> &f) { //Z9
     vector <int> a = TRANS_Z_N(g);
     vector <int> b = TRANS_Z_N(f);
     if ((SGN_Z_D(g) == 1 && SGN_Z_D(f) == 1)|| (SGN_Z_D(g) == -1 && SGN_Z_D(f) == -1)) {
@@ -116,7 +116,7 @@ vector <int> DIV_ZZ_Z(const vector <int> &g, const vector <int> &f) { //N9
     if (SGN_Z_D(g) == 0) return {0, 0};
 }
 
-vector<int> MOD_ZZ_Z(const vector<int> &g, const vector<int> &f) {
+vector<int> MOD_ZZ_Z(const vector<int> &g, const vector<int> &f) { //Z10
     vector<int> q = DIV_ZZ_Z(g, f);
     vector<int> r = SUB_ZZ_Z(g, MUL_ZZ_Z(f, q));
     if (SGN_Z_D(r) == -1) {

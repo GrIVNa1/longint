@@ -7,4 +7,7 @@ add_executable(longint
         main.cpp
         integer.cpp
         natural.cpp
+        " rational.cpp"
+        rational.h
+        rational_struct.h
 )
