@@ -1,7 +1,7 @@
 #ifndef LONGINT_RATIONAL_H
 #define LONGINT_RATIONAL_H
 
-#include "rational_struct.h"
+#include "rational.h"
 
 rational RED_Q_Q(const rational &r);
 bool INT_Q_B(const rational &r);

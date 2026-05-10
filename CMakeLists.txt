@@ -10,4 +10,6 @@ add_executable(longint
         " rational.cpp"
         rational.h
         rational_struct.h
+        polynomial.cpp
+        polynomial.h
 )
