@@ -18,5 +18,6 @@ vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f);
 vector<rational> GCF_PP_P(const vector<rational>& g, const vector<rational>& f);
 vector<rational> DER_P_P(const vector<rational>& g);
 vector<rational> NMR_P_P(const vector<rational>& p);
+vector<rational> MUL_PP_P(const vector<rational>& g, const vector<rational>& f);
 
 #endif
