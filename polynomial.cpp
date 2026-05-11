@@ -29,7 +29,7 @@ vector<rational> SUB_PP_P(const vector<rational>& g, const vector<rational>& f) 
     return c;
 }
 
-vector<rational> MUL_PQ_P(const vector<rational>& g, const rational& f) {
+vector<rational> MUL_PQ_P(const vector<rational>& g, const rational& f) { //P3
     vector<rational> a = g;
     rational q = f;
     for (int i = 0; i < a.size(); ++i) {
@@ -38,7 +38,7 @@ vector<rational> MUL_PQ_P(const vector<rational>& g, const rational& f) {
     return a;
 }
 
-vector<rational> MUL_Pxk_P(const vector<rational> &g, unsigned long long k) {
+vector<rational> MUL_Pxk_P(const vector<rational> &g, unsigned long long k) { // p4
     vector<rational> a = g;
     rational zero;
     zero.numerator = {0, 0};
@@ -48,17 +48,17 @@ vector<rational> MUL_Pxk_P(const vector<rational> &g, unsigned long long k) {
     return a;
 }
 
-rational LED_P_Q (const vector<rational> &g) { //P4
+rational LED_P_Q (const vector<rational> &g) { //P5
     return g[0];
 }
 
-int DEG_P_N(const vector<rational> &g) { //P5
+int DEG_P_N(const vector<rational> &g) { //P6
     return g.size()-1;
 }
 
 
 
-rational FAC_P_Q(const vector<rational>& g) { //P6
+rational FAC_P_Q(const vector<rational>& g) { //P7
     vector<int> l = {1}, n;
     for (auto& c : g) l = LCM_NN_N(l, c.denominator);
     for (auto& c : g) if (c.numerator[0]) {
@@ -69,7 +69,18 @@ rational FAC_P_Q(const vector<rational>& g) { //P6
     return RED_Q_Q({{TRANS_N_Z(n)}, l});
 }
 
-vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) { //P7
+vector<rational> MUL_PP_P(const vector<rational>& g, const vector<rational>& f) { // P8
+    vector<rational> res = { rational{{0,0}, {1}} };
+    for (size_t i = 0; i < g.size(); ++i) {
+        int k = g.size() - 1 - i;
+        vector<rational> term = MUL_PQ_P(f, g[i]);
+        term = MUL_Pxk_P(term, k);
+        res = ADD_PP_P(res, term);
+    }
+    return res;
+}
+
+vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) { //P9
     vector<rational> a = g, b = f, q;
     while (a.size() >= b.size() && a[0].numerator[0] != 0) {
         unsigned long long k = a.size() - b.size();
@@ -86,7 +97,7 @@ vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) 
 }
 
 
-vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f) {
+vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f) { // P10
     vector<rational> a = g, b = f;
     while (a.size() >= b.size() && a[0].numerator[0] != 0) {
         unsigned long long k = a.size() - b.size();
@@ -98,7 +109,7 @@ vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f) 
     return a;
 }
 
-vector<rational> GCF_PP_P(const vector<rational>& g, const vector<rational>& f) {
+vector<rational> GCF_PP_P(const vector<rational>& g, const vector<rational>& f) { //P11
     vector<rational> a = g, b = f;
     int iter = 0;
     while (!(b.size() == 1 && b[0].numerator[0] == 0 && b[0].numerator[1] == 0)) {
@@ -117,7 +128,7 @@ vector<rational> GCF_PP_P(const vector<rational>& g, const vector<rational>& f) 
     return res;
 }
 
-vector<rational> DER_P_P(const vector<rational>& g) {
+vector<rational> DER_P_P(const vector<rational>& g) { // P12
     int n = g.size();
     if (n <= 1) return { rational{{0,0}, {1}} };
     vector<rational> res;
@@ -137,7 +148,7 @@ vector<rational> DER_P_P(const vector<rational>& g) {
     return res;
 }
 
-vector<rational> NMR_P_P(const vector<rational>& p) {
+vector<rational> NMR_P_P(const vector<rational>& p) { //P13
     vector<rational> d = DER_P_P(p);
     vector<rational> g = GCF_PP_P(p, d);
     return DIV_PP_P(p, g);
