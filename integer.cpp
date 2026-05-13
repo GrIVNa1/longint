@@ -25,13 +25,15 @@ vector <int> TRANS_N_Z (const vector <int> &g) { //Z4
     else a.insert(a.begin(), 0);
     return a;
 }
-vector <int> TRANS_Z_N (const vector <int> &g) { //Z5
-    vector <int> a = g;
+vector<int> TRANS_Z_N(const vector<int>& g) {
+    if (g.size() <= 1) return {0};
+    if (g.size() == 2 && g[0] == 0 && g[1] == 0) return {0}; // явный 0
+    vector<int> a = g;
     a.erase(a.begin());
     return a;
 }
 
-vector <int> ADD_ZZ_Z(const vector <int> &g, const vector <int> &f) { //Z6
+vector <int> ADD_ZZ_Z(const vector <int> &g, const vector <int> &f) {
     if (SGN_Z_D(g) == 0) return f;
     if (SGN_Z_D(f) == 0) return g;
 

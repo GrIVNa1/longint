@@ -5,25 +5,52 @@
 #include "rational.h"
 #include "natural.h"
 using namespace std;
-vector<rational> ADD_PP_P(const vector<rational>& g, const vector<rational>& f) { //P1
+
+rational fix_Rational(const rational& r) {
+    rational res = r;
+    if (res.numerator.empty()) {
+        res.numerator = {0, 0};
+    } else if (res.numerator.size() == 1) {
+        int sign = res.numerator[0];
+        res.numerator = {sign, 0};
+    }
+    // Знаменатель
+    if (res.denominator.empty()) {
+        res.denominator = {1};
+    } else if (res.denominator.size() == 1 && res.denominator[0] == 0) {
+        res.denominator = {1};
+    }
+    return res;
+}
+
+vector<rational> ADD_PP_P(const vector<rational>& g, const vector<rational>& f) {
     vector<rational> a = g, b = f;
+    for (auto& c : a) c = fix_Rational(c);
+    for (auto& c : b) c = fix_Rational(c);
     if (a.size() < b.size()) swap(a, b);
     vector<rational> c = a;
     int shift = a.size() - b.size();
     for (int i = 0; i < b.size(); ++i)
         c[shift + i] = ADD_QQ_Q(c[shift + i], b[i]);
+    for (auto& x : c) x = fix_Rational(x);
     while (c.size() > 1 && c[0].numerator[0] == 0)
         c.erase(c.begin());
     return c;
 }
 
-vector<rational> SUB_PP_P(const vector<rational>& g, const vector<rational>& f) {//P2
+vector<rational> SUB_PP_P(const vector<rational>& g, const vector<rational>& f) {
     vector<rational> a = g, b = f;
+    for (auto& coeff : a) coeff = fix_Rational(coeff);
+    for (auto& coeff : b) coeff = fix_Rational(coeff);
+
     if (a.size() < b.size()) swap(a, b);
     vector<rational> c = a;
     int shift = a.size() - b.size();
     for (int i = 0; i < b.size(); ++i)
         c[shift + i] = SUB_QQ_Q(c[shift + i], b[i]);
+
+    for (auto& coeff : c) coeff = fix_Rational(coeff);
+
     while (c.size() > 1 && c[0].numerator[0] == 0)
         c.erase(c.begin());
     return c;
@@ -80,24 +107,139 @@ vector<rational> MUL_PP_P(const vector<rational>& g, const vector<rational>& f) 
     return res;
 }
 
-vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) { //P9
+
+struct RawRat {
+    std::vector<int> num;
+    std::vector<int> den;
+};
+
+inline RawRat toRaw(const rational& r) {
+    return {r.numerator, r.denominator};
+}
+
+inline rational toRational(const RawRat& r) {
+    rational res;
+    res.numerator = r.num;
+    res.denominator = r.den;
+    return RED_Q_Q(res);
+}
+
+RawRat addRaw(const RawRat& a, const RawRat& b) {
+    RawRat res;
+    if (a.den.size() == 1 && a.den[0] == 1) {
+        res.den = b.den;
+        res.num = ADD_ZZ_Z(MUL_ZZ_Z(a.num, TRANS_N_Z(b.den)), b.num);
+    } else if (b.den.size() == 1 && b.den[0] == 1) {
+        res.den = a.den;
+        res.num = ADD_ZZ_Z(a.num, MUL_ZZ_Z(b.num, TRANS_N_Z(a.den)));
+    } else {
+        res.den = LCM_NN_N(a.den, b.den);
+        auto m1 = DIV_NN_N(res.den, a.den);
+        auto m2 = DIV_NN_N(res.den, b.den);
+        res.num = ADD_ZZ_Z(MUL_ZZ_Z(a.num, TRANS_N_Z(m1)),
+                           MUL_ZZ_Z(b.num, TRANS_N_Z(m2)));
+    }
+    return res;
+}
+
+RawRat subRaw(const RawRat& a, const RawRat& b) {
+    RawRat res;
+    if (a.den.size() == 1 && a.den[0] == 1) {
+        res.den = b.den;
+        res.num = SUB_ZZ_Z(MUL_ZZ_Z(a.num, TRANS_N_Z(b.den)), b.num);
+    } else if (b.den.size() == 1 && b.den[0] == 1) {
+        res.den = a.den;
+        res.num = SUB_ZZ_Z(a.num, MUL_ZZ_Z(b.num, TRANS_N_Z(a.den)));
+    } else {
+        res.den = LCM_NN_N(a.den, b.den);
+        auto m1 = DIV_NN_N(res.den, a.den);
+        auto m2 = DIV_NN_N(res.den, b.den);
+        res.num = SUB_ZZ_Z(MUL_ZZ_Z(a.num, TRANS_N_Z(m1)),
+                           MUL_ZZ_Z(b.num, TRANS_N_Z(m2)));
+    }
+    return res;
+}
+
+RawRat mulRaw(const RawRat& a, const RawRat& b) {
+    RawRat res;
+    res.num = MUL_ZZ_Z(a.num, b.num);
+    res.den = MUL_NN_N(a.den, b.den);
+    return res;
+}
+
+RawRat divRaw(const RawRat& a, const RawRat& b) {
+    RawRat res;
+    // (a.num/a.den) / (b.num/b.den) = (a.num * b.den) / (a.den * b.num)
+    res.num = MUL_ZZ_Z(a.num, TRANS_N_Z(b.den));
+    res.den = MUL_NN_N(a.den, TRANS_Z_N(b.num));
+    return res;
+}
+
+
+
+vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) {
+
+    if (f.size() == 2) {
+        if (g.size() <= 1) return {rational{{0, 0},{1}}};
+
+        RawRat a = toRaw(f[0]);
+        RawRat b = toRaw(f[1]);
+        size_t degQ = g.size() - 1;
+        std::vector<RawRat> rawQ(degQ);
+
+        rawQ[0] = divRaw(toRaw(g[0]), a);
+        for (size_t i = 1; i < degQ; ++i) {
+            RawRat term = mulRaw(b, rawQ[i-1]);
+            RawRat diff = subRaw(toRaw(g[i]), term);
+            rawQ[i] = divRaw(diff, a);
+        }
+
+        vector<rational> q(degQ);
+        for (size_t i = 0; i < degQ; ++i)
+            q[i] = toRational(rawQ[i]);
+
+        while (q.size() > 1 && q[0].numerator[0] == 0)
+            q.erase(q.begin());
+        return q;
+    }
+
     vector<rational> a = g, b = f, q;
     while (a.size() >= b.size() && a[0].numerator[0] != 0) {
         unsigned long long k = a.size() - b.size();
         rational c = DIV_QQ_Q(a[0], b[0]);
-        vector<rational> m = MUL_Pxk_P(vector<rational>{c}, k);
+        vector<rational> m = MUL_Pxk_P({c}, k);
         a = SUB_PP_P(a, MUL_Pxk_P(MUL_PQ_P(b, c), k));
         q = ADD_PP_P(q, m);
         while (a.size() > 0 && a[0].numerator[0] == 0)
             a.erase(a.begin());
     }
     if (q.empty())
-        return vector<rational>{rational{{0},{1}}};
+        return {rational{{0, 0},{1}}};
     return q;
 }
 
 
-vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f) { // P10
+vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f) {
+    if (f.size() == 2) {
+        if (g.size() <= 1) return g;
+
+        RawRat a = toRaw(f[0]);
+        RawRat b = toRaw(f[1]);
+
+        RawRat cur = divRaw(toRaw(g[0]), a);
+        for (size_t i = 1; i < g.size() - 1; ++i) {
+            RawRat term = mulRaw(b, cur);
+            RawRat diff = subRaw(toRaw(g[i]), term);
+            cur = divRaw(diff, a);
+        }
+        RawRat r = subRaw(toRaw(g.back()), mulRaw(b, cur));
+        rational res = toRational(r);
+
+        if (res.numerator[0] == 0)
+            return {rational{{0, 0},{1}}};
+        return {res};
+    }
+
     vector<rational> a = g, b = f;
     while (a.size() >= b.size() && a[0].numerator[0] != 0) {
         unsigned long long k = a.size() - b.size();
