@@ -117,9 +117,9 @@ vector<int> SUB_NDN_N (const vector<int> &g, int d, const vector<int> &f) { //N9
 
 vector<int> DIV_NN_Dk (const vector<int> &g, const vector<int> &f) { //N10
     // cout << 10 << endl;
-    if (f.empty() || (f.size() == 1 && f[0] == 0)) return {0}; // деление на 0 -> 0 (аварийно)
-    if (g.empty() || (g.size() == 1 && g[0] == 0)) return {0}; // 0/что-то = 0
-    if (f.size() == 1 && f[0] == 1) return g;  // деление на 1
+    if (f.empty() || (f.size() == 1 && f[0] == 0)) return {0};
+    if (g.empty() || (g.size() == 1 && g[0] == 0)) return {0};
+    if (f.size() == 1 && f[0] == 1) return g;
     vector<int> a = g;
     vector<int> b = f;
     if (COM_NN_D(a, b) == 1) return {0};

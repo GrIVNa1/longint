@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-
 #include "integer.h"
 #include "rational_struct.h"
 #include "rational.h"
@@ -83,8 +82,6 @@ int DEG_P_N(const vector<rational> &g) { //P6
     return g.size()-1;
 }
 
-
-
 rational FAC_P_Q(const vector<rational>& g) { //P7
     vector<int> l = {1}, n;
     for (auto& c : g) l = LCM_NN_N(l, c.denominator);
@@ -106,7 +103,6 @@ vector<rational> MUL_PP_P(const vector<rational>& g, const vector<rational>& f) 
     }
     return res;
 }
-
 
 struct RawRat {
     std::vector<int> num;
@@ -175,36 +171,37 @@ RawRat divRaw(const RawRat& a, const RawRat& b) {
     return res;
 }
 
-
-
+rational toRationalSafe(const RawRat& r) {
+    if (r.num.size() == 1 && r.num[0] == 0) {
+        return { {0,0}, r.den };
+    }
+    return RED_Q_Q({r.num, r.den});
+}
 vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) {
-
+    // Линейный делитель
     if (f.size() == 2) {
-        if (g.size() <= 1) return {rational{{0, 0},{1}}};
-
+        if (g.size() <= 1) return {rational{{0,0},{1}}};
         RawRat a = toRaw(f[0]);
         RawRat b = toRaw(f[1]);
         size_t degQ = g.size() - 1;
-        std::vector<RawRat> rawQ(degQ);
-
+        vector<RawRat> rawQ(degQ);
         rawQ[0] = divRaw(toRaw(g[0]), a);
         for (size_t i = 1; i < degQ; ++i) {
             RawRat term = mulRaw(b, rawQ[i-1]);
             RawRat diff = subRaw(toRaw(g[i]), term);
             rawQ[i] = divRaw(diff, a);
         }
-
         vector<rational> q(degQ);
         for (size_t i = 0; i < degQ; ++i)
-            q[i] = toRational(rawQ[i]);
-
+            q[i] = toRationalSafe(rawQ[i]);
         while (q.size() > 1 && q[0].numerator[0] == 0)
             q.erase(q.begin());
         return q;
     }
-
+    // Общий случай (оставлен как был, но с защитой от зависаний – ограничение числа итераций)
     vector<rational> a = g, b = f, q;
-    while (a.size() >= b.size() && a[0].numerator[0] != 0) {
+    int max_iter = 1000;   // защита от бесконечного цикла
+    while (a.size() >= b.size() && a[0].numerator[0] != 0 && max_iter-- > 0) {
         unsigned long long k = a.size() - b.size();
         rational c = DIV_QQ_Q(a[0], b[0]);
         vector<rational> m = MUL_Pxk_P({c}, k);
@@ -213,42 +210,41 @@ vector<rational> DIV_PP_P(const vector<rational>& g, const vector<rational>& f) 
         while (a.size() > 0 && a[0].numerator[0] == 0)
             a.erase(a.begin());
     }
-    if (q.empty())
-        return {rational{{0, 0},{1}}};
+    if (q.empty()) return {rational{{0,0},{1}}};
     return q;
 }
 
-
 vector<rational> MOD_PP_P(const vector<rational>& g, const vector<rational>& f) {
-    if (f.size() == 2) {
-        if (g.size() <= 1) return g;
-
-        RawRat a = toRaw(f[0]);
-        RawRat b = toRaw(f[1]);
-
-        RawRat cur = divRaw(toRaw(g[0]), a);
-        for (size_t i = 1; i < g.size() - 1; ++i) {
-            RawRat term = mulRaw(b, cur);
-            RawRat diff = subRaw(toRaw(g[i]), term);
-            cur = divRaw(diff, a);
+        if (f.size() == 2) {
+            if (g.size() <= 1) return g;
+            RawRat a = toRaw(f[0]);
+            RawRat b = toRaw(f[1]);
+            RawRat cur = divRaw(toRaw(g[0]), a);
+            for (size_t i = 1; i < g.size() - 1; ++i) {
+                RawRat term = mulRaw(b, cur);
+                RawRat diff = subRaw(toRaw(g[i]), term);
+                cur = divRaw(diff, a);
+            }
+            RawRat r = subRaw(toRaw(g.back()), mulRaw(b, cur));
+            rational res = toRationalSafe(r);
+            if (res.numerator.size() == 2 && res.numerator[0] == 0 && res.numerator[1] == 0)
+                return {rational{{0,0},{1}}};
+            return {res};
         }
-        RawRat r = subRaw(toRaw(g.back()), mulRaw(b, cur));
-        rational res = toRational(r);
+        vector<rational> a = g, b = f;
+        int max_iter = 1000;
+        while (a.size() >= b.size() && a[0].numerator[0] != 0 && max_iter-- > 0) {
+            unsigned long long k = a.size() - b.size();
+            rational c = DIV_QQ_Q(a[0], b[0]);
+            a = SUB_PP_P(a, MUL_Pxk_P(MUL_PQ_P(b, c), k));
+            while (a.size() > 0 && a[0].numerator[0] == 0)
+                a.erase(a.begin());
+        }
+        return a;
+}
 
-        if (res.numerator[0] == 0)
-            return {rational{{0, 0},{1}}};
-        return {res};
-    }
-
-    vector<rational> a = g, b = f;
-    while (a.size() >= b.size() && a[0].numerator[0] != 0) {
-        unsigned long long k = a.size() - b.size();
-        rational c = DIV_QQ_Q(a[0], b[0]);
-        a = SUB_PP_P(a, MUL_Pxk_P(MUL_PQ_P(b, c), k));
-        while (a.size() > 0 && a[0].numerator[0] == 0)
-            a.erase(a.begin());
-    }
-    return a;
+vector<rational> MOD_P_P(const vector<rational>& g, const vector<rational>& f) {
+    return SUB_PP_P(g, MUL_PP_P(f, DIV_PP_P(g,f)));
 }
 
 vector<rational> GCF_PP_P(const vector<rational>& g, const vector<rational>& f) { //P11

@@ -113,9 +113,8 @@ vector <int> DIV_ZZ_Z(const vector <int> &g, const vector <int> &f) { //Z9
         vector <int> c = MUL_ZM_Z(TRANS_N_Z(DIV_NN_N(a,b)));
         if (c[1] == 0) c[0] = 0;
         return c;
-        return c;
     }
-    if (SGN_Z_D(g) == 0) return {0, 0};
+    if (SGN_Z_D(g) == 0) return {0,0};
 }
 
 vector<int> MOD_ZZ_Z(const vector<int> &g, const vector<int> &f) { //Z10
